@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """ Module documentation """
+import math
 
 
-def add(a: float, b: float) -> float:
+def floor(n: float) -> int:
     """Func doc"""
-    return a + b
+    return math.floor(n)
