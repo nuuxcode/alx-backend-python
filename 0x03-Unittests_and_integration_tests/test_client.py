@@ -32,8 +32,8 @@ class TestGithubOrgClient(unittest.TestCase):
         self.assertEqual(github_org_client._public_repos_url,
                          payload["repos_url"])
 
-    @patch("client.get_json",
-           return_value=[{"name": "repo1"}, {"name": "repo2"}])
+    @patch("client.get_json", return_value=[{"name": "repo1"},
+                                            {"name": "repo2"}])
     def test_public_repos(self, mock_get_json) -> None:
         """doc doc doc"""
         with patch(
@@ -48,3 +48,16 @@ class TestGithubOrgClient(unittest.TestCase):
                              ["repo1", "repo2"])
             mock_get_json.assert_called_once()
             mock_public_repos_url.assert_called_once()
+
+    @parameterized.expand(
+        [
+            ({"license": {"key": "my_license"}}, "my_license", True),
+            ({"license": {"key": "other_license"}}, "my_license", False),
+        ]
+    )
+    def test_has_license(self, repo, license_key, expected_result) -> None:
+        """doc doc doc"""
+        github_org_client = GithubOrgClient("google")
+        self.assertEqual(
+            github_org_client.has_license(repo, license_key), expected_result
+        )
