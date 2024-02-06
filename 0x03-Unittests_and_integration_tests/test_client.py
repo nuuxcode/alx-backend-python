@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """ doc doc doc """
 from unittest.mock import patch, Mock, PropertyMock
-from parameterized import parameterized
+from parameterized import parameterized, parameterized_class
 from client import GithubOrgClient
 import unittest
+from fixtures import TEST_PAYLOAD
 
 
 class TestGithubOrgClient(unittest.TestCase):
@@ -32,8 +33,8 @@ class TestGithubOrgClient(unittest.TestCase):
         self.assertEqual(github_org_client._public_repos_url,
                          payload["repos_url"])
 
-    @patch("client.get_json", return_value=[{"name": "repo1"},
-                                            {"name": "repo2"}])
+    @patch("client.get_json",
+           return_value=[{"name": "repo1"}, {"name": "repo2"}])
     def test_public_repos(self, mock_get_json) -> None:
         """doc doc doc"""
         with patch(
@@ -61,3 +62,28 @@ class TestGithubOrgClient(unittest.TestCase):
         self.assertEqual(
             github_org_client.has_license(repo, license_key), expected_result
         )
+
+
+@parameterized_class(('org_payload', 'repos_payload',
+                      'expected_repos', 'apache2_repos'), TEST_PAYLOAD)
+class TestIntegrationGithubOrgClient(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        """Set up the tests"""
+        cls.get_patcher = patch("requests.get")
+        cls.mock_get = cls.get_patcher.start()
+
+        def side_effect(url):
+            if url.endswith("/orgs/google"):
+                return cls.org_payload
+            elif url.endswith("/orgs/google/repos"):
+                return cls.repos_payload
+            else:
+                return None
+
+        cls.mock_get.json.side_effect = side_effect
+
+    @classmethod
+    def tearDownClass(cls):
+        """Tear down the tests"""
+        cls.get_patcher.stop()
